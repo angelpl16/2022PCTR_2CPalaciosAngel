@@ -11,7 +11,7 @@ public class ActividadEnemiga implements Runnable{
 	
 	
 	//Se creará un numero aleatorio de enemigos que ira desde los 0 a los 200
-	private static final int MAX_ENEMIGOS = (int)numAleatorio.nextInt(200);
+	public static final int MAX_ENEMIGOS = (int)numAleatorio.nextInt(200);
 	private int tipo;
 	private IJuego juego;
 	
