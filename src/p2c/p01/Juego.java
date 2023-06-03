@@ -1,18 +1,17 @@
 package p2c.p01;
 
 import java.util.Hashtable;
-import java.util.Random;
 
 public class Juego implements IJuego {
 
-	private boolean creaEnemigo = true;
-	private boolean eliminaEnemigo = true;
+	private boolean creaEnemigo = false;
+	private boolean eliminaEnemigo = false;
 
-	private int contadorEnemigosTotales;
+	private int contadorEnemigosTotales = 0;
 	private Hashtable<Integer, Integer> contadoresEnemigosTipo;
 	private Hashtable<Integer, Integer> contadoresEnemigosEliminadosTipo;
 
-	private int MAXENEMIGOS = new Random().nextInt(50);
+	private int MAXENEMIGOS = 50;
 	private int MINENEMIGOS = 0;
 
 	private boolean bloqueoOperacion = false;
@@ -20,12 +19,14 @@ public class Juego implements IJuego {
 	public Juego() {
 		contadorEnemigosTotales = 0;
 		contadoresEnemigosTipo = new Hashtable<Integer, Integer>();
+		contadoresEnemigosEliminadosTipo = new Hashtable<Integer, Integer>();
 	}
 
 	@Override
-	public void generarEnemigo(int tipo) {
-		if (contadoresEnemigosTipo.get(tipo) == 0) {
+	public synchronized void generarEnemigo(int tipo) {
+		if (contadoresEnemigosTipo.get(tipo) == null) {
 			contadoresEnemigosTipo.put(tipo, 0);
+			contadoresEnemigosEliminadosTipo.put(tipo, 0);
 		}
 
 		comprobarAntesDeGenerar(tipo);
@@ -37,17 +38,16 @@ public class Juego implements IJuego {
 			imprimirInfo(tipo, "Generado");
 			checkInvariante();
 			bloqueoOperacion = false;
+			creaEnemigo = false;
 			notifyAll();
 		}
 
 	}
 
 	@Override
-	public void eliminarEnemigo(int tipo) {
-		if (contadoresEnemigosEliminadosTipo.get(tipo) == 0) {
-			contadoresEnemigosEliminadosTipo.put(tipo, 0);
-		}
+	public synchronized void eliminarEnemigo(int tipo) {
 
+		comprobarAntesDeEliminar(tipo);
 		if (eliminaEnemigo = true) {
 			bloqueoOperacion = true;
 			contadorEnemigosTotales--;
@@ -56,8 +56,9 @@ public class Juego implements IJuego {
 			imprimirInfo(tipo, "Eliminado");
 			checkInvariante();
 			bloqueoOperacion = false;
+			eliminaEnemigo = false;
 			notifyAll();
-			
+
 		}
 
 	}
@@ -71,23 +72,32 @@ public class Juego implements IJuego {
 	}
 
 	private void imprimirInfo(int tipo, String operacion) {
-		System.out.println(operacion + "enemigo tipo " + tipo);
+		System.out.println(operacion + " enemigo tipo " + tipo);
 		System.out.println("--> Enemigos Totales: " + contadorEnemigosTotales);
 
 		for (int p : contadoresEnemigosTipo.keySet()) {
+
 			System.out.println("---> Enemigos Tipo " + p + ": " + contadoresEnemigosTipo.get(p)
 					+ " ------ [Eliminados: " + contadoresEnemigosEliminadosTipo.get(p) + "]");
+
 		}
 		System.out.println(" ");
 	}
 
 	protected void comprobarAntesDeGenerar(int tipo) {
-		if (contadorEnemigosTotales < MAXENEMIGOS) {
-			for (int i = 1; i < tipo; i++) {
-				if (!contadoresEnemigosTipo.containsKey(tipo)) {
-					creaEnemigo = false;
+		boolean contiene = true;
+			
+		if (contadoresEnemigosTipo.containsKey(tipo)) {
+			for (int i = 0; i < tipo; i++) {
+				if(!contadoresEnemigosTipo.containsKey(i)) {
+					contiene = false;
 				}
 			}
+		}
+		
+		if (contiene) {
+			creaEnemigo = true;
+			contiene = true;
 		}
 
 		while (!creaEnemigo || bloqueoOperacion || contadorEnemigosTotales == MAXENEMIGOS) {
@@ -101,10 +111,12 @@ public class Juego implements IJuego {
 	}
 
 	protected void comprobarAntesDeEliminar(int tipo) {
-		if (contadorEnemigosTotales <= MINENEMIGOS) {
-			eliminaEnemigo = false;
+		if (contadoresEnemigosEliminadosTipo.containsKey(tipo) && contadoresEnemigosTipo.get(tipo)>0) {
+			if(contadorEnemigosTotales > MINENEMIGOS) {
+				eliminaEnemigo = true;
+			}
 		}
-
+		
 		while (!eliminaEnemigo || bloqueoOperacion || contadorEnemigosTotales == MINENEMIGOS) {
 			try {
 				wait();

@@ -10,8 +10,8 @@ public class ActividadEnemiga implements Runnable{
 	static Random numAleatorio = new Random();
 	
 	
-	//Se creará un numero aleatorio de enemigos que ira desde los 0 a los 200
-	public static final int MAX_ENEMIGOS = (int)numAleatorio.nextInt(200);
+	//Se creará un numero aleatorio de enemigos que ira desde los 0 a los 20
+	public static final int MAX_ENEMIGOS = (int)numAleatorio.nextInt(20);
 	private int tipo;
 	private IJuego juego;
 	
@@ -24,7 +24,7 @@ public class ActividadEnemiga implements Runnable{
 	public void run() {
 		for (int i = 0; i < MAX_ENEMIGOS; i++) {
 			try {
-				//Se crea un enemigo cuando tengamos la funcion
+				juego.generarEnemigo(tipo);
 				TimeUnit.MILLISECONDS.sleep(new Random().nextInt(5)*1000);
 				
 			} catch (InterruptedException e) {

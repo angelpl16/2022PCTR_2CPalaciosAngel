@@ -21,7 +21,7 @@ public class ActividadAliada implements Runnable {
 	public void run() {
 		for (int i = 0; i < MAX_ALIADOS; i++) {
 			try {
-				//Se crea un aliado cuando tengamos la funcion
+				juego.eliminarEnemigo(tipo);
 				TimeUnit.MILLISECONDS.sleep(new Random().nextInt(5)*1000);
 				
 			} catch (InterruptedException e) {
